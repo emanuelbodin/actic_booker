@@ -1,0 +1,16 @@
+[package]
+name = "actic-booker"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aws_lambda_events = { version = "0.15.1", default-features = false, features = ["eventbridge"] }
+dotenv = "0.15.0"
+
+lambda_runtime = "0.13.0"
+reqwest = { version = "0.12.12", features = ["json"]}
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.137"
+tokio = { version = "1", features = ["macros"] }
+openssl = { version = "0.10", features = ["vendored"] }
+chrono = "0.4.39"

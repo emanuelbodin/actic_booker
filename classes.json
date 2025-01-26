@@ -1,0 +1,21 @@
+{
+  "classes": [
+    { "name": "Spinning", "id": 71409 },
+    { "name": "Senior Spinning", "id": 71408 },
+    { "name": "LES MILLS GRIT® Strength", "id": 23629 },
+    { "name": "Zumba®", "id": 71223 },
+    { "name": "Aerobic Dance", "id": 71412 },
+    { "name": "Senior Yoga", "id": 71014 },
+    { "name": "ATC Tabata", "id": 71612 },
+    { "name": "Step", "id": 71222 },
+    { "name": "Pilates", "id": 71620 },
+    { "name": "Yoga", "id": 71230 },
+    { "name": "LES MILLS SHAPES™", "id": 84610 },
+    { "name": "Maskinintroduktion", "id": 88607 },
+    { "name": "BODYPUMP™", "id": 71430 },
+    { "name": "BODYBALANCE™", "id": 71432 },
+    { "name": "ATC Circuit", "id": 71215 },
+    { "name": "ATC Abs", "id": 86209 },
+    { "name": "Happening Yoga", "id": 71227 }
+  ]
+}
