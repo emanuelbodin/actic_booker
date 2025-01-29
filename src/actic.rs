@@ -2,18 +2,17 @@ use chrono::{Datelike, NaiveDate};
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
 use serde_json::Value;
-use std::{collections::HashMap, hash::Hash, str};
+use std::{collections::HashMap, str};
 
 pub struct ApiClient {
     pub client: reqwest::Client,
     pub user_id: String,
+    pub center_id: String,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Activity {
     pub name: String,
-    #[serde(rename = "activityId")]
-    pub activity_id: i32,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -26,8 +25,6 @@ pub struct Class {
     pub end_time: String,
     #[serde(rename = "bookingIdCompound")]
     pub booking_id_compound: String,
-    #[serde(rename = "bookingState")]
-    pub booking_state: String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -77,6 +74,7 @@ async fn get_auth(
 pub async fn get_api_client(
     username: &str,
     password: &str,
+    center_id: u32
 ) -> Result<ApiClient, Box<dyn std::error::Error>> {
     let (access_token, user_id) = get_auth(username, password).await.unwrap();
     let mut headers = HeaderMap::new();
@@ -91,6 +89,7 @@ pub async fn get_api_client(
     Ok(ApiClient {
         client: client,
         user_id: user_id,
+        center_id: center_id.to_string(),
     })
 }
 
@@ -116,8 +115,9 @@ pub async fn book_class(
 
 pub async fn get_classes(client: &ApiClient) -> Result<ClassesData, Box<dyn std::error::Error>> {
     let url = format!(
-        "https://webapi.actic.se/persons/{}/centers/110/classes",
-        client.user_id
+        "https://webapi.actic.se/persons/{}/centers/{}/classes",
+        client.user_id,
+        client.center_id
     );
     let res = client.client.get(url).send().await?.text().await?;
     let classes: ClassesData = serde_json::from_str(&res).unwrap();
@@ -133,9 +133,8 @@ pub fn _print_classes(classes_data: &ClassesData) {
         println!("{} {}", day, date);
         for class in classes {
             println!(
-                "  activity: {}, id: {}, compound_id: {} start: {}, end: {}",
+                "  activity: {}, compound_id: {} start: {}, end: {}",
                 class.activity.name,
-                class.activity.activity_id,
                 class.booking_id_compound,
                 class.start_time,
                 class.end_time

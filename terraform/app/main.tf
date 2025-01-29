@@ -5,6 +5,8 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  backend "s3" {}
 }
 
 provider "aws" {
@@ -12,6 +14,7 @@ provider "aws" {
 
   default_tags {
     tags = {
+      project = "actic-booker"
     }
   }
 }
@@ -24,7 +27,7 @@ module "eventbridge" {
   rules = {
     crons = {
       description         = "Trigger for a Lambda"
-      schedule_expression = "cron(30 0 * * ? *)"
+      schedule_expression = "cron(45 18 * * ? *)"
     }
   }
 
