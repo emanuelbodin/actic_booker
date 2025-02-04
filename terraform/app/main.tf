@@ -19,6 +19,44 @@ provider "aws" {
   }
 }
 
+resource "aws_ecr_repository" "app" {
+  name                 = var.ecr_repo_name
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
+
+// Lambda
+data "aws_iam_policy_document" "assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "iam_for_lambda" {
+  name               = "iam_for_lambda"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+}
+
+
+resource "aws_lambda_function" "test_lambda" {
+  function_name = var.lambda_function_name
+  role          = aws_iam_role.iam_for_lambda.arn
+  image_uri     = "${aws_ecr_repository.app.repository_url}:${var.image_tag}"
+  package_type  = "Image"
+  architectures = ["arm64"]
+  timeout       = 10
+}
+
+// Eventbridge 
+
 module "eventbridge" {
   source = "terraform-aws-modules/eventbridge/aws"
 
@@ -34,9 +72,9 @@ module "eventbridge" {
   targets = {
     crons = [
       {
-        name  = "lambda-loves-cron"
+        name  = "spinning monday 18:45"
         arn   = var.lambda_arn
-        input = jsonencode({"name": "cron-by-rate"})
+        input = jsonencode({"center_id": 110, "name": "Spinning", "day": "Mon", "start_time": "18:45"})
       }
     ]
   }

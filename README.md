@@ -25,6 +25,12 @@ More info:
 
 Build for production by running `cargo lambda build --release`
 
+To build docker image run: `docker build -t actic_booker:latest .`
+Test the docker image locally with `docker run -p 8080:8080 --env-file .env  actic_booker:latest` and invoke with by running:
+```sh
+curl -X POST --data '{"version":"2.0","center_id":110,"name":"Spinning","day":"Mon","start_time":"18:45","requestContext":{"http":{"method":"GET"},"timeEpoch":0}}' http://localhost:8080/2015-03-31/functions/function/invocations
+```
+
 ## Local development
 
 ```sh
@@ -55,6 +61,13 @@ touch .terraform.tfvars // fill this with proper values
 terraform init -backend-config="backend.hcl"
 terraform apply
 ```
+
+Push docker image: 
+```sh
+aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin <ecr_repo_url>
+docker push <ecr_repo_url>:<tag>
+```
+
 
 Mkae sure you have authenticated to you AWS account.
 
