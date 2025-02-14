@@ -8,6 +8,7 @@ pub struct Event {
     name: String,
     day: String,
     start_time: String,
+    latest: String,
 }
 
 pub(crate) async fn function_handler(event: LambdaEvent<Event>) -> Result<Vec<String>, Error> {
@@ -27,7 +28,8 @@ pub(crate) async fn function_handler(event: LambdaEvent<Event>) -> Result<Vec<St
         &payload.day,
         &payload.start_time,
     );
-    let booking_result = crate::actic::book_classes(&client, matched_classes, current_bookings)
+    let only_book_latest = payload.latest == "true";
+    let booking_result = crate::actic::book_classes(&client, matched_classes, current_bookings, only_book_latest)
         .await
         .unwrap();
     Ok(booking_result)
@@ -46,6 +48,7 @@ mod tests {
                 name: String::from("test"),
                 day: String::from("test"),
                 start_time: String::from("test"),
+                latest: String::from("test"),
             },
             Context::default(),
         );

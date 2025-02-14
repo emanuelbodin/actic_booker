@@ -2,5 +2,6 @@
   "center_id": 110,
   "name": "Spinning",
   "day": "Mon",
-  "start_time": "18:45"
+  "start_time": "18:45",
+  "latest": "true"
 }

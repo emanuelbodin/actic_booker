@@ -1,4 +1,4 @@
-use chrono::{Datelike, NaiveDate};
+use chrono::{DateTime, Datelike, NaiveDate, NaiveDateTime, Utc};
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
 use serde_json::Value;
@@ -188,24 +188,31 @@ pub async fn book_classes(
     client: &ApiClient,
     matched_classes: Vec<Class>,
     current_bookings: HashMap<String, BookingData>,
+    only_book_latest: bool
 ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let mut booking_result: Vec<String> = vec![];
     for class in matched_classes {
+
+        
+        if only_book_latest && get_days_from_today(date_string_to_utc(&class.date)) < 7 {
+            continue;
+        }
         if current_bookings.contains_key(&class.booking_id_compound)
             && current_bookings[&class.booking_id_compound]
                 .booking
-                .activity
+                .activity 
                 .name
                 == class.activity.name
             && current_bookings[&class.booking_id_compound].booking.date == class.date
         {
+            println!("Already booked class: {} @ {} {}", class.activity.name, class.date, class.start_time);
             booking_result.push(format!(
                 "Already booked class: {} @ {} {}",
                 class.activity.name, class.date, class.start_time
             ));
             continue;
         }
-        println!("Booking class: {}", class.booking_id_compound);
+        println!("Booking class: {} @ {} {}", class.activity.name, class.date, class.start_time);
         let booking_successful = book_class(&client, class.booking_id_compound).await?;
         if booking_successful {
             booking_result.push(format!(
@@ -220,4 +227,16 @@ pub async fn book_classes(
         }
     }
     Ok(booking_result)
+}
+
+fn get_days_from_today(date: DateTime<Utc>) -> i64 {
+    let time_stamp_diff = Utc::now().timestamp() - date.timestamp();
+    return (time_stamp_diff / 86400).abs();
+}
+
+fn date_string_to_utc(date: &str) -> DateTime<Utc> {
+    let naive_date = NaiveDate::parse_from_str(&date, "%Y-%m-%d").unwrap();
+    let naive_datetime = NaiveDateTime::new(naive_date, chrono::NaiveTime::MIN);
+    let utc_datetime = naive_datetime.and_utc();
+    return utc_datetime;
 }
