@@ -41,10 +41,43 @@ data "aws_iam_policy_document" "assume_role" {
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
-  name               = "iam_for_lambda"
+  name               = "${var.lambda_function_name}_role"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
+
+resource "aws_iam_policy" "cloudwatch_logs" {
+  name        = "${var.lambda_function_name}_policy"
+  description = "Allows Lambda to write logs to CloudWatch"
+  
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:*:*:*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_logs_attach" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = aws_iam_policy.cloudwatch_logs.arn
+}
+
+resource "aws_cloudwatch_log_group" "lambda" {
+  name              = "/aws/lambda/${var.lambda_function_name}"
+  retention_in_days = 14
+  lifecycle {
+    prevent_destroy = false
+  }
+}
 
 resource "aws_lambda_function" "app" {
   function_name = var.lambda_function_name
@@ -53,6 +86,7 @@ resource "aws_lambda_function" "app" {
   package_type  = "Image"
   architectures = ["arm64"]
   timeout       = 10
+  depends_on    = [aws_cloudwatch_log_group.lambda]
   environment {
     variables = {
       USERNAME = var.username
@@ -60,6 +94,8 @@ resource "aws_lambda_function" "app" {
     }
   }
 }
+
+
 
 // Eventbridge 
 
@@ -70,7 +106,8 @@ module "eventbridge" {
   rules = {
     "${var.rule_name}" = {
       description         = "Trigger for a Lambda"
-      schedule_expression = "cron(45 18 ? * Fri *)"
+      schedule_expression = "cron(45 17 ? * Fri *)" // Time in UTC, runs every Friday at 18:45 Swedish time (17:45 UTC)
+      
     }
   }
 
@@ -83,4 +120,12 @@ module "eventbridge" {
       }
     ]
   }
+}
+
+resource "aws_lambda_permission" "allow_eventbridge" {
+  statement_id  = "${var.lambda_function_name}-allow-eventbridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.app.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = module.eventbridge.eventbridge_rule_arns["${var.rule_name}"]
 }
