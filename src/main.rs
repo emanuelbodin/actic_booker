@@ -1,6 +1,7 @@
 use lambda_runtime::{run, service_fn, tracing, Error};
 
 mod actic;
+mod credentials;
 mod event_handler;
 use event_handler::function_handler;
 
