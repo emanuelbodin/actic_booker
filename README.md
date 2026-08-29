@@ -52,7 +52,7 @@ Example:
 ./scripts/build-and-push-ecr.sh latest 123456789012.dkr.ecr.eu-north-1.amazonaws.com/actic-booker
 ```
 
-The script logs in to ECR, builds the image with `--provenance=false` (required because AWS Lambda does not support multi-platform images), and pushes `<ecr_url>:<tag>`. Needs a recent Docker with Buildx.
+The script builds the image with `--provenance=false` (required because AWS Lambda does not support multi-platform images) and pushes `<ecr_url>:<tag>`. Auth is left to Docker (for example the Amazon ECR credential helper). Needs a recent Docker with Buildx.
 
 To build locally without pushing:
 

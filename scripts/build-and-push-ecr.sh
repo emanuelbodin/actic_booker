@@ -32,19 +32,15 @@ ECR_URL="$2"
 ECR_REPO="${ECR_URL%%:*}"
 REGISTRY="${ECR_REPO%%/*}"
 
-if [[ ! "$REGISTRY" =~ ^[0-9]+\.dkr\.ecr\.([a-z0-9-]+)\.amazonaws\.com$ ]]; then
-  echo "error: could not parse region from ECR URL: $ECR_REPO" >&2
+if [[ ! "$REGISTRY" =~ ^[0-9]+\.dkr\.ecr\.[a-z0-9-]+\.amazonaws\.com$ ]]; then
+  echo "error: could not parse ECR URL: $ECR_REPO" >&2
   echo "expected format: <account>.dkr.ecr.<region>.amazonaws.com/<repository>" >&2
   exit 1
 fi
 
-REGION="${BASH_REMATCH[1]}"
 IMAGE="${ECR_REPO}:${TAG}"
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
-
-echo "Logging in to ECR registry ${REGISTRY} (${REGION})..."
-aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$REGISTRY"
 
 echo "Building ${IMAGE}..."
 # --provenance=false is required: AWS Lambda does not support multi-platform images
