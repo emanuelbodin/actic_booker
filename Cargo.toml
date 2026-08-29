@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+aws-config = "1.5.15"
+aws-sdk-ssm = "1.59.0"
 aws_lambda_events = { version = "0.15.1", default-features = false, features = ["eventbridge"] }
 dotenv = "0.15.0"
 
