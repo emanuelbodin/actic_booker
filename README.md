@@ -40,31 +40,36 @@ This project is intended to be built with docker but can also be built and deplo
 
 Build for production by running `cargo lambda build --release` and deploy with `cargo deploy` (this automatically creates an aws lambda function and iam role).
 
-To build docker image run:
+To build the Docker image and push it to ECR, run:
 
 ```sh
-docker build -t actic_booker:latest --provenance=false
+./scripts/build-and-push-ecr.sh <tag> <ecr_url>
 ```
 
-The `--provenance=false` is necessary since aws lambda don't support multi-platforn images.
-
-Run the docker image locally with
+Example:
 
 ```sh
-docker run -p 8080:8080 --env-file .env  actic_booker:latest
+./scripts/build-and-push-ecr.sh latest 123456789012.dkr.ecr.eu-north-1.amazonaws.com/actic-booker
 ```
 
-and invoke with by running:
+The script logs in to ECR, builds the image with `--provenance=false` (required because AWS Lambda does not support multi-platform images), and pushes `<ecr_url>:<tag>`. Needs a recent Docker with Buildx.
+
+To build locally without pushing:
+
+```sh
+docker build -t actic_booker:latest --provenance=false .
+```
+
+Run the docker image locally with:
+
+```sh
+docker run -p 8080:8080 --env-file .env actic_booker:latest
+```
+
+and invoke by running:
 
 ```sh
 curl -X POST --data '{"version":"2.0","center_id":110,"name":"Spinning","day":"Mon","start_time":"18:45","latest":"true","requestContext":{"http":{"method":"GET"},"timeEpoch":0}}' http://localhost:8080/2015-03-31/functions/function/invocations
-```
-
-Push docker image to ecr:
-
-```sh
-aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin <ecr_repo_url>
-docker push <ecr_repo_url>:<tag>
 ```
 
 ## Deploying
